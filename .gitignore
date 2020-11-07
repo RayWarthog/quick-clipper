@@ -1,0 +1,6 @@
+*.ts
+*.mp4
+*.mkv
+*.txt
+
+!example_input.txt

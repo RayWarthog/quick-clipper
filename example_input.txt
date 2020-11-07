@@ -1,0 +1,5 @@
+# Link, start time <HH:MM:SS>, clip time <HH:MM:SS>
+https://www.youtube.com/watch?v=dQ 00:00:43 00:00:08
+
+# Comments like this are ignored
+https://www.youtube.com/watch?v=L_jWHffIx5E 00:00:37 00:00:23

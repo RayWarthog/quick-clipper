@@ -1,5 +1,11 @@
-# Link, start time <HH:MM:SS>, clip time <HH:MM:SS>
-https://www.youtube.com/watch?v=dQw4w9WgXcQ 00:00:43 00:00:08
+# Link, start time <HH:MM:SS>, end time <HH:MM:SS>
+https://www.youtube.com/watch?v=dQw4w9WgXcQ 00:00:00 00:00:10
+https://www.youtube.com/watch?v=dQw4w9WgXcQ 00:00:43 00:00:50
 
 # Comments like this are ignored
-https://www.youtube.com/watch?v=L_jWHffIx5E 00:00:37 00:00:23
+https://www.youtube.com/watch?v=L_jWHffIx5E 00:00:37 00:01:00
+
+# bilibili
+https://www.bilibili.com/video/BV1Vb41137Z8/ 00:00:00 00:00:13
+https://www.bilibili.com/video/BV1Vb41137Z8/ 00:00:55 00:01:15
+

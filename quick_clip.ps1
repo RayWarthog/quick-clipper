@@ -5,9 +5,9 @@
 #   -rmtmpfiles: Whether to remove the temporary files (Y/N)
 
 param (
-    [Parameter(Mandatory=$true)] $i,
-    [Parameter(Mandatory=$true)] $o,
-    [Parameter()] $rmtmpfiles = 'Y'
+    [Parameter(Mandatory = $true)] $i,
+    [Parameter(Mandatory = $true)] $o,
+    [string][Parameter()] $rmtmpfiles = 'Y'
 )
 
 $tmp_file_prefix = 'tmp_'
@@ -15,41 +15,43 @@ $tmp_file_counter = 0
 $tmp_file_suffix = '.ts'
 
 $gen_files = @()
-foreach($line in Get-Content $i) {
+
+foreach ($line in Get-Content $i) {
     $line_arr = $line.Split()
-    if($line_arr.count -lt 3) {
+    if ($line_arr.count -lt 3) {
         continue
     }
     $link = $line_arr[0]
     $start = $line_arr[1]
     $end = $line_arr[2]
 
-    if($link.StartsWith("#")) {
+    if ($link.StartsWith("#")) {
         continue
     }
 
-    if($link.Contains('bilibili')) {
+    if ($link.Contains('bilibili')) {
         $filename = $tmp_file_prefix + $tmp_file_counter + $tmp_file_suffix
         $tmp_file_counter = $tmp_file_counter + 1;
         $dl_link = (youtube-dl -g $link) | Out-String
 
-        if(!$dl_link) {
+        if (!$dl_link) {
             exit
         }
 
-        if($start -eq "00:00:00") {
-            ffmpeg -y -i $dl_link -t $end -c copy -f mpegts $filename
+        if ($start -eq '00:00:00') {
+            ffmpeg -y -to $end -i $dl_link -c copy -f mpegts $filename
         } else {
-            ffmpeg -y -ss $start -i $dl_link -t $end -c copy -f mpegts $filename
+            ffmpeg -y -ss $start -to $end -i $dl_link -c copy -f mpegts $filename
         }
         
         $gen_files += $filename
-    } elseif ($link.Contains('youtube') -or $link.Contains('youtu.be')) {
+    }
+    elseif ($link.Contains('youtube') -or $link.Contains('youtu.be')) {
         $filename = $tmp_file_prefix + $tmp_file_counter + $tmp_file_suffix
         $tmp_file_counter = $tmp_file_counter + 1;
         $links = (youtube-dl -g $link) | Out-String
 
-        if(!$links) {
+        if (!$links) {
             exit
         }
 
@@ -58,14 +60,11 @@ foreach($line in Get-Content $i) {
         $video = $links[0]
         $audio = $links[2]
 
-        if($start -eq "00:00:00") {
-            ffmpeg -y -i $video -i $audio -t $end -map "0:v" -map 1:a -"c:v" libx264 -"c:a" aac -f mpegts $filename
-        } else {
-            ffmpeg -y -ss $start -i $video -ss $start -i $audio -t $end -map "0:v" -map 1:a -"c:v" libx264 -"c:a" aac -f mpegts $filename
-        }
+        ffmpeg -y -ss $start -to $end -i $video -ss $start -to $end -i $audio -map "0:v" -map 1:a -"c:v" libx264 -"c:a" aac -f mpegts $filename
 
         $gen_files += $filename
-    } else {
+    }
+    else {
         continue
     }
 }
@@ -74,7 +73,7 @@ $filenames = $gen_files -join "|"
 ffmpeg -i "concat:$filenames" -c copy $o
 
 if ($rmtmpfiles -eq 'Y') {
-    foreach($gen_file in $gen_files) {
+    foreach ($gen_file in $gen_files) {
         Remove-Item $gen_file
     }
 }

@@ -16,6 +16,8 @@ $tmp_file_suffix = '.ts'
 
 $gen_files = @()
 
+$links_dict = @{}
+
 foreach ($line in Get-Content $i) {
     $line_arr = $line.Split()
     if ($line_arr.count -lt 3) {
@@ -32,7 +34,13 @@ foreach ($line in Get-Content $i) {
     if ($link.Contains('bilibili')) {
         $filename = $tmp_file_prefix + $tmp_file_counter + $tmp_file_suffix
         $tmp_file_counter = $tmp_file_counter + 1;
-        $dl_link = (youtube-dl -g $link) | Out-String
+
+        if($links_dict.ContainsKey($link)) {
+            $dl_link = $links_dict[$link]
+        } else {
+            $dl_link = (youtube-dl -g $link) | Out-String
+            $links_dict[$link] = $dl_link
+        }
 
         if (!$dl_link) {
             exit
@@ -49,7 +57,13 @@ foreach ($line in Get-Content $i) {
     elseif ($link.Contains('youtube') -or $link.Contains('youtu.be')) {
         $filename = $tmp_file_prefix + $tmp_file_counter + $tmp_file_suffix
         $tmp_file_counter = $tmp_file_counter + 1;
-        $links = (youtube-dl -g $link) | Out-String
+
+        if($links_dict.ContainsKey($link)) {
+            $links = $links_dict[$link]
+        } else {
+            $links = (youtube-dl -g $link) | Out-String
+            $links_dict[$link] = $links
+        }
 
         if (!$links) {
             exit

@@ -12,6 +12,7 @@ Warning that this script doesn't handle much errors, and may leave half-finished
 1. Create a paramater txt file containing list of clips in the following format
     ```
     # Lines starting with '#' are ignored
+    # <youtube/bilibili link> <start time> <duration>
     https://www.youtube.com/watch?v=dQw4w9WgXcQ 00:00:43 00:00:08
 
     # Refer to the sample_input.txt file

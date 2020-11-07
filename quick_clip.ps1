@@ -78,6 +78,14 @@ foreach ($line in Get-Content $i) {
 
         $gen_files += $filename
     }
+    elseif (Test-Path $link) {
+        $filename = $tmp_file_prefix + $tmp_file_counter + $tmp_file_suffix
+        $tmp_file_counter = $tmp_file_counter + 1;
+
+        ffmpeg -y -ss $start -to $end -i $link -c copy -f mpegts $filename
+
+        $gen_files += $filename
+    }
     else {
         continue
     }

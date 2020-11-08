@@ -1,22 +1,54 @@
-# Requires youtube-dl, ffmpeg
-# Parameters:
-#   -i : parameter file
-#   -o : output file
-#   -rmtmpfiles: Whether to remove the temporary files (Y/N)
+<#
+.SYNOPSIS
+    Powershell script to download and merge youtube/bilibili clips.
+.DESCRIPTION
+    Given a parameter input file, the script utilizes youtube-dl to extract the links, and use ffmpeg to download and merge it.
+
+    The parameter file should have lines that are in the specific format:
+    <youtube/bilibili link> <start time> <end time>
+
+    Requires youtube-dl, ffmpeg.
+.PARAMETER i
+    Parameter file
+.PARAMETER o
+    Output file
+.Parameter rmtmpfiles
+    If set, removes the temporary files generated
+.Parameter noreuse
+    If set, will not reuse previously downloaded clips and always redownload
+.Parameter overwrite
+    If set, skip the overwrite warning for output file
+.NOTES
+    Author: RayWarthog
+#>
 
 param (
-    [Parameter(Mandatory = $true)] $i,
-    [Parameter(Mandatory = $true)] $o,
-    [string][Parameter()] $rmtmpfiles = 'Y'
+    [Parameter(Mandatory = $true)]
+    [ValidateScript( {
+            if ( -Not ($_ | Test-Path) ) {
+                throw "Parameter file does not exist"
+            }
+            return $true
+        })]
+    [System.IO.FileInfo]
+    $i,
+    [Parameter(Mandatory = $true)][System.IO.FileInfo] $o,
+    [Parameter(Mandatory = $false)][switch] $rmtmpfiles,
+    [Parameter(Mandatory = $false)][switch] $noreuse,
+    [Parameter(Mandatory = $false)][switch] $overwrite
 )
 
-$tmp_file_prefix = 'tmp_'
-$tmp_file_counter = 0
+$tmp_folder = 'tmp'
 $tmp_file_suffix = '.ts'
 
-$gen_files = @()
-
 $links_dict = @{}
+$gen_files = @()
+$to_merge_files = @()
+
+if (!(Test-Path $tmp_folder)) {
+    "Creating temporary folder $tmp_foldeer..."
+    New-Item -ItemType Directory -Force -Path $tmp_folder
+}
 
 foreach ($line in Get-Content $i) {
     $line_arr = $line.Split()
@@ -31,13 +63,23 @@ foreach ($line in Get-Content $i) {
         continue
     }
 
-    if ($link.Contains('bilibili')) {
-        $filename = $tmp_file_prefix + $tmp_file_counter + $tmp_file_suffix
-        $tmp_file_counter = $tmp_file_counter + 1;
+    "[$link $start $end]"
 
-        if($links_dict.ContainsKey($link)) {
+    $tmp_file_name = ($link + '_' + $start + '_' + $end).Split([IO.Path]::GetInvalidFileNameChars()) -join '_'
+    $tmp_file_path = $tmp_folder + '/' + $tmp_file_name + $tmp_file_suffix
+
+    if (!($noreuse) -and (Test-Path $tmp_file_path)) {
+        "Clip already exists, skipping processing."
+        $to_merge_files += $tmp_file_path
+        continue
+    }
+
+    if ($link.Contains('bilibili')) {
+        "Processing bilibili link..."
+        if ($links_dict.ContainsKey($link)) {
             $dl_link = $links_dict[$link]
-        } else {
+        }
+        else {
             $dl_link = (youtube-dl -g $link) | Out-String
             $links_dict[$link] = $dl_link
         }
@@ -47,20 +89,21 @@ foreach ($line in Get-Content $i) {
         }
 
         if ($start -eq '00:00:00') {
-            ffmpeg -y -to $end -i $dl_link -c copy -f mpegts $filename
-        } else {
-            ffmpeg -y -ss $start -to $end -i $dl_link -c copy -f mpegts $filename
+            ffmpeg -y -to $end -i $dl_link -c copy -f mpegts $tmp_file_path
+        }
+        else {
+            ffmpeg -y -ss $start -to $end -i $dl_link -c copy -f mpegts $tmp_file_path
         }
         
-        $gen_files += $filename
+        $gen_files += $tmp_file_path
+        $to_merge_files += $tmp_file_path
     }
     elseif ($link.Contains('youtube') -or $link.Contains('youtu.be')) {
-        $filename = $tmp_file_prefix + $tmp_file_counter + $tmp_file_suffix
-        $tmp_file_counter = $tmp_file_counter + 1;
-
-        if($links_dict.ContainsKey($link)) {
+        "Processing youtube link..."
+        if ($links_dict.ContainsKey($link)) {
             $links = $links_dict[$link]
-        } else {
+        }
+        else {
             $links = (youtube-dl -g $link) | Out-String
             $links_dict[$link] = $links
         }
@@ -74,28 +117,44 @@ foreach ($line in Get-Content $i) {
         $video = $links[0]
         $audio = $links[2]
 
-        ffmpeg -y -ss $start -to $end -i $video -ss $start -to $end -i $audio -map "0:v" -map 1:a -"c:v" libx264 -"c:a" aac -f mpegts $filename
+        ffmpeg -y -ss $start -to $end -i $video -ss $start -to $end -i $audio -map "0:v" -map 1:a -"c:v" libx264 -"c:a" aac -f mpegts $tmp_file_path
 
-        $gen_files += $filename
+        $gen_files += $tmp_file_path
+        $to_merge_files += $tmp_file_path
     }
     elseif (Test-Path $link) {
-        $filename = $tmp_file_prefix + $tmp_file_counter + $tmp_file_suffix
-        $tmp_file_counter = $tmp_file_counter + 1;
+        "Processing local file..."
+        ffmpeg -y -ss $start -to $end -i $link -c copy -f mpegts $tmp_file_path
 
-        ffmpeg -y -ss $start -to $end -i $link -c copy -f mpegts $filename
-
-        $gen_files += $filename
+        $gen_files += $tmp_file_path
+        $to_merge_files += $tmp_file_path
     }
     else {
+        "Invalid parameters, skipping."
         continue
     }
 }
 
-$filenames = $gen_files -join "|"
-ffmpeg -i "concat:$filenames" -c copy $o
+"Merging..."
+$filenames = $to_merge_files -join "|"
+if ($overwrite) {
+    ffmpeg -y -i "concat:$filenames" -c copy $o
+}
+else {
+    ffmpeg -i "concat:$filenames" -c copy $o
+}
 
-if ($rmtmpfiles -eq 'Y') {
+if ($rmtmpfiles) {
+    "Removing generated files..."
     foreach ($gen_file in $gen_files) {
         Remove-Item $gen_file
     }
+
+    $tmp_folder_info = Get-ChildItem $tmp_folder | Measure-Object
+    if ($tmp_folder_info.count -eq 0) {
+        "Removing $tmp_folder..."
+        Remove-Item $tmp_folder
+    }
 }
+
+"Done."

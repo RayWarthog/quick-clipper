@@ -89,14 +89,10 @@ foreach ($line in Get-Content $i) {
         }
 
         if ($start -eq '00:00:00') {
-            $ok = (ffmpeg -y -to $end -i $dl_link -c copy -f mpegts $tmp_file_path)  | Out-String
+            ffmpeg -y -to $end -i $dl_link -c copy -f mpegts $tmp_file_path
         }
         else {
-            $ok = (ffmpeg -y -ss $start -to $end -i $dl_link -c copy -f mpegts $tmp_file_path)  | Out-String
-        }
-
-        if(!$ok) {
-            exit
+            ffmpeg -y -ss $start -to $end -i $dl_link -c copy -f mpegts $tmp_file_path
         }
         
         $gen_files += $tmp_file_path
@@ -121,47 +117,31 @@ foreach ($line in Get-Content $i) {
         $video = $links[0]
         $audio = $links[2]
 
-        $ok = (ffmpeg -y -ss $start -to $end -i $video -ss $start -to $end -i $audio -map "0:v" -map 1:a -"c:v" libx264 -"c:a" aac -f mpegts $tmp_file_path)  | Out-String
-        if(!$ok) {
-            exit
-        }
+        ffmpeg -y -ss $start -to $end -i $video -ss $start -to $end -i $audio -map "0:v" -map 1:a -"c:v" libx264 -"c:a" aac -f mpegts $tmp_file_path
 
         $gen_files += $tmp_file_path
         $to_merge_files += $tmp_file_path
     }
     elseif (Test-Path $link) {
         "Processing local file..."
-        $ok = (ffmpeg -y -ss $start -to $end -i $link -c copy -f mpegts $tmp_file_path)  | Out-String
-        if(!$ok) {
-            exit
-        }
+        ffmpeg -y -ss $start -to $end -i $link -c copy -f mpegts $tmp_file_path
 
         $gen_files += $tmp_file_path
         $to_merge_files += $tmp_file_path
     }
     else {
-        "Attempting to process $link..."
-        
-        $ok = (ffmpeg -y -ss $start -to $end -i $link -c copy -f mpegts $tmp_file_path) | Out-String
-        if(!$ok) {
-            exit
-        }
-
-        $gen_files += $tmp_file_path
-        $to_merge_files += $tmp_file_path
+        "Invalid parameters, skipping."
+        continue
     }
 }
 
 "Merging..."
 $filenames = $to_merge_files -join "|"
 if ($overwrite) {
-    $ok = (ffmpeg -y -i "concat:$filenames" -c copy $o) | Out-String
+    ffmpeg -y -i "concat:$filenames" -c copy $o
 }
 else {
-    $ok = (ffmpeg -i "concat:$filenames" -c copy $o) | Out-String
-}
-if(!$ok) {
-    exit
+    ffmpeg -i "concat:$filenames" -c copy $o
 }
 
 if ($rmtmpfiles) {

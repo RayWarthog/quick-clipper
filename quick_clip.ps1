@@ -66,6 +66,7 @@ foreach ($line in Get-Content $i) {
     "[$link $start $end]"
 
     $tmp_file_name = ($link + '_' + $start + '_' + $end).Split([IO.Path]::GetInvalidFileNameChars()) -join '_'
+    $tmp_file_name = $tmp_file_name.substring(0, [System.Math]::Min(200, $tmp_file_name.Length))
     $tmp_file_path = $tmp_folder + '/' + $tmp_file_name + $tmp_file_suffix
 
     if (!($noreuse) -and (Test-Path $tmp_file_path)) {

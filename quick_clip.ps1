@@ -46,7 +46,7 @@ $gen_files = @()
 $to_merge_files = @()
 
 if (!(Test-Path $tmp_folder)) {
-    "Creating temporary folder $tmp_foldeer..."
+    Write-Host "Creating temporary folder $tmp_foldeer..."
     New-Item -ItemType Directory -Force -Path $tmp_folder
 }
 
@@ -69,13 +69,13 @@ foreach ($line in Get-Content $i) {
     $tmp_file_path = $tmp_folder + '/' + $tmp_file_name + $tmp_file_suffix
 
     if (!($noreuse) -and (Test-Path $tmp_file_path)) {
-        "Clip already exists, skipping processing."
+        Write-Host "Clip already exists, skipping processing."
         $to_merge_files += $tmp_file_path
         continue
     }
 
     if ($link.Contains('bilibili')) {
-        "Processing bilibili link..."
+        Write-Host "Processing bilibili link..."
         if ($links_dict.ContainsKey($link)) {
             $dl_link = $links_dict[$link]
         }
@@ -99,7 +99,7 @@ foreach ($line in Get-Content $i) {
         $to_merge_files += $tmp_file_path
     }
     elseif ($link.Contains('youtube') -or $link.Contains('youtu.be')) {
-        "Processing youtube link..."
+        Write-Host "Processing youtube link..."
         if ($links_dict.ContainsKey($link)) {
             $links = $links_dict[$link]
         }
@@ -123,19 +123,23 @@ foreach ($line in Get-Content $i) {
         $to_merge_files += $tmp_file_path
     }
     elseif (Test-Path $link) {
-        "Processing local file..."
+        Write-Host "Processing local file..."
         ffmpeg -y -ss $start -to $end -i $link -c copy -f mpegts $tmp_file_path
 
         $gen_files += $tmp_file_path
         $to_merge_files += $tmp_file_path
     }
     else {
-        "Invalid parameters, skipping."
-        continue
+        Write-Host "Attempting to process..."
+
+        ffmpeg -y -ss $start -to $end -i $link -c copy -f mpegts $tmp_file_path
+
+        $gen_files += $tmp_file_path
+        $to_merge_files += $tmp_file_path
     }
 }
 
-"Merging..."
+Write-Host "Merging..."
 $filenames = $to_merge_files -join "|"
 if ($overwrite) {
     ffmpeg -y -i "concat:$filenames" -c copy $o
@@ -145,16 +149,16 @@ else {
 }
 
 if ($rmtmpfiles) {
-    "Removing generated files..."
+    Write-Host "Removing generated files..."
     foreach ($gen_file in $gen_files) {
         Remove-Item $gen_file
     }
 
     $tmp_folder_info = Get-ChildItem $tmp_folder | Measure-Object
     if ($tmp_folder_info.count -eq 0) {
-        "Removing $tmp_folder..."
+        Write-Host "Removing $tmp_folder..."
         Remove-Item $tmp_folder
     }
 }
 
-"Done."
+Write-Host "Done."

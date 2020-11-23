@@ -89,10 +89,10 @@ foreach ($line in Get-Content $i) {
         }
 
         if ($start -eq '00:00:00') {
-            ffmpeg -y -to $end -i $dl_link -c copy -f mpegts $tmp_file_path
+            ffmpeg -y -to $end -i $dl_link -"c:v" libx264 -"c:a" aac -f mpegts $tmp_file_path
         }
         else {
-            ffmpeg -y -ss $start -to $end -i $dl_link -c copy -f mpegts $tmp_file_path
+            ffmpeg -y -ss $start -to $end -i $dl_link -"c:v" libx264 -"c:a" aac -f mpegts $tmp_file_path
         }
         
         $gen_files += $tmp_file_path

@@ -124,7 +124,7 @@ foreach ($line in Get-Content $i) {
     }
     elseif (Test-Path $link) {
         Write-Host "Processing local file..."
-        ffmpeg -y -ss $start -to $end -i $link -c copy -f mpegts $tmp_file_path
+        ffmpeg -y -ss $start -to $end -i $link -"c:v" libx264 -"c:a" aac -f mpegts $tmp_file_path
 
         $gen_files += $tmp_file_path
         $to_merge_files += $tmp_file_path
@@ -132,7 +132,7 @@ foreach ($line in Get-Content $i) {
     else {
         Write-Host "Attempting to process..."
 
-        ffmpeg -y -ss $start -to $end -i $link -c copy -f mpegts $tmp_file_path
+        ffmpeg -y -ss $start -to $end -i $link -"c:v" libx264 -"c:a" aac -f mpegts $tmp_file_path
 
         $gen_files += $tmp_file_path
         $to_merge_files += $tmp_file_path

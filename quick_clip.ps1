@@ -115,7 +115,7 @@ foreach ($line in Get-Content $i) {
         $links = $links.Split([Environment]::NewLine)
         
         $video = $links[0]
-        $audio = $links[2]
+        $audio = $links[1]
 
         ffmpeg -y -ss $start -to $end -i $video -ss $start -to $end -i $audio -map "0:v" -map 1:a -"c:v" libx264 -"c:a" aac -f mpegts $tmp_file_path
 

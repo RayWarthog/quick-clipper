@@ -9,3 +9,8 @@ https://www.youtube.com/watch?v=L_jWHffIx5E 00:00:37 00:01:00
 https://www.bilibili.com/video/BV1Vb41137Z8/ 00:00:00 00:00:13
 https://www.bilibili.com/video/BV1Vb41137Z8/ 00:00:55 00:01:15
 
+# You can use local files to
+# myfile.mp4 00:00:00 00:01:00
+
+# Use double quotes if your file names have spaces
+# "C:/Videos/My Video.mp4" 00:00:00 00:00:10

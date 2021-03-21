@@ -1,5 +1,5 @@
 # quick-clipper
-Powershell script to download and merge youtube/bilibili clips. 
+Powershell script to download and merge youtube/bilibili clips or local files. 
 The script utilizes youtube-dl to extract the links, and use ffmpeg to download and merge it.
 
 By default, clips will be downloaded to a tmp folder, before they are merged.
@@ -17,6 +17,9 @@ Warning that this script doesn't handle much errors, and may leave half-finished
     # Lines starting with '#' are ignored
     # <youtube/bilibili link> <start time> <end time>
     https://www.youtube.com/watch?v=dQw4w9WgXcQ 00:00:43 00:00:50
+
+    # Local files are support too
+    # "C:/Videos/My video.mp4" 00:00:30 00:00:35
 
     # Refer to the example_input.txt file
     ```

@@ -51,7 +51,7 @@ if (!(Test-Path $tmp_folder)) {
 }
 
 foreach ($line in Get-Content $i) {
-    $line_arr = $line.Split()
+    $line_arr = $line -Split ' +(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)'
     if ($line_arr.count -lt 3) {
         continue
     }

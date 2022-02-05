@@ -1,6 +1,6 @@
 # quick-clipper
 Powershell script to download and merge youtube/bilibili clips or local files. 
-The script utilizes youtube-dl to extract the links, and use ffmpeg to download and merge it.
+The script utilizes yt-dlp to extract the links, and use ffmpeg to download and merge it.
 
 By default, clips will be downloaded to a tmp folder, before they are merged.
 The tmp folder and the downloaded clips wouldn't be removed (unless the -rmtmpfiles flag is set), and the clips inside may be reused if the script is called again (unless the -noreuse flag is set).
@@ -9,7 +9,7 @@ Warning that this script doesn't handle much errors, and may leave half-finished
 
 ## Requires
 * ffmpeg
-* youtube-dl
+* yt-dlp
 
 ## Usage
 1. Create a paramater txt file containing list of clips in the following format

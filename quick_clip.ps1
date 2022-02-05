@@ -2,12 +2,12 @@
 .SYNOPSIS
     Powershell script to download and merge youtube/bilibili clips.
 .DESCRIPTION
-    Given a parameter input file, the script utilizes youtube-dl to extract the links, and use ffmpeg to download and merge it.
+    Given a parameter input file, the script utilizes yt-dlp to extract the links, and use ffmpeg to download and merge it.
 
     The parameter file should have lines that are in the specific format:
     <youtube/bilibili link> <start time> <end time>
 
-    Requires youtube-dl, ffmpeg.
+    Requires yt-dlp, ffmpeg.
 .PARAMETER i
     Parameter file
 .PARAMETER o
@@ -80,7 +80,7 @@ foreach ($line in Get-Content $i) {
             $dl_link = $links_dict[$link]
         }
         else {
-            $dl_link = (youtube-dl -g $link) | Out-String
+            $dl_link = (yt-dlp -g $link) | Out-String
             $links_dict[$link] = $dl_link
         }
 
@@ -104,7 +104,7 @@ foreach ($line in Get-Content $i) {
             $links = $links_dict[$link]
         }
         else {
-            $links = (youtube-dl -g $link) | Out-String
+            $links = (yt-dlp -g $link) | Out-String
             $links_dict[$link] = $links
         }
 
